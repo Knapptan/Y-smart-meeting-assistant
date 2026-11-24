@@ -246,3 +246,11 @@ func (s *MeetingService) Retry(ctx context.Context, userExternalID string, meeti
 	slog.Info("meeting: retry scheduled", "meeting_id", meetingID, "task_id", task.ID, "attempts", task.Attempts)
 	return task, nil
 }
+
+// Register создаёт пользователя по external_id, если не существует.
+func (s *MeetingService) Register(ctx context.Context, userExternalID string) (*domain.User, error) {
+	if strings.TrimSpace(userExternalID) == "" {
+		return nil, fmt.Errorf("%w: user_id is required", ErrInvalidInput)
+	}
+	return s.users.GetOrCreate(ctx, userExternalID)
+}

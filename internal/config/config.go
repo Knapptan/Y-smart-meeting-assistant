@@ -17,6 +17,8 @@ type Config struct {
 	MockTranscriptPath string
 	MockSummaryPath    string
 	LogLevel           string
+	UserID             string // Внешний ID пользователя
+	MigrationsPath     string // Путь к миграциям
 }
 
 // Load парсит флаги и переменные окружения.
@@ -31,6 +33,8 @@ func Load() *Config {
 	mockTranscript := flag.String("mock-transcript", "testdata/transcript_ru.txt", "path to mock transcript")
 	mockSummary := flag.String("mock-summary", "testdata/summary_ru.txt", "path to mock summary")
 	logLevel := flag.String("log-level", "info", "log level: debug|info|warn|error")
+	userID := flag.String("user", "", "user external ID (or USER_ID env)")
+	migrationsPath := flag.String("migrations", "migrations", "path to migrations directory")
 	flag.Parse()
 
 	return &Config{
@@ -43,6 +47,8 @@ func Load() *Config {
 		MockTranscriptPath: *mockTranscript,
 		MockSummaryPath:    *mockSummary,
 		LogLevel:           pick("LOG_LEVEL", *logLevel),
+		UserID:             pick("USER_ID", *userID),
+		MigrationsPath:     *migrationsPath,
 	}
 }
 
