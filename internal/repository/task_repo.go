@@ -91,3 +91,27 @@ func (r *TaskRepo) IncAttempts(ctx context.Context, id int64) error {
 		time.Now(), id)
 	return err
 }
+
+// Retry атомарно переводит задачу встречи из failed в created
+// и инкрементирует attempts. Возвращает nil, если задача не в failed
+// или attempts >= maxAttempts.
+func (r *TaskRepo) Retry(ctx context.Context, meetingID int64, maxAttempts int) (*domain.Task, error) {
+	const q = `
+		UPDATE tasks
+		SET status = 'created', error = '', attempts = attempts + 1, updated_at = NOW()
+		WHERE meeting_id = $1
+		  AND status = 'failed'
+		  AND attempts < $2
+		RETURNING id, meeting_id, status, attempts, error, created_at, updated_at`
+	var t domain.Task
+	err := r.db.QueryRowContext(ctx, q, meetingID, maxAttempts).Scan(
+		&t.ID, &t.MeetingID, &t.Status, &t.Attempts, &t.Error, &t.CreatedAt, &t.UpdatedAt,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &t, nil
+}

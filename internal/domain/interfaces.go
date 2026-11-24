@@ -41,6 +41,8 @@ type TaskRepository interface {
 	UpdateStatus(ctx context.Context, id int64, s Status, errMsg string) error
 	// IncAttempts увеличивает счётчик попыток.
 	IncAttempts(ctx context.Context, id int64) error
+	// Retry атомарно переводит задачу встречи из failed в created.
+	Retry(ctx context.Context, meetingID int64, maxAttempts int) (*Task, error)
 }
 
 // TranscriptRepository — транскрипции.
@@ -62,6 +64,9 @@ type UserRepository interface {
 	// GetOrCreate возвращает пользователя по external_id,
 	// создаёт, если не существует.
 	GetOrCreate(ctx context.Context, externalID string) (*User, error)
+	// GetByExternalID возвращает пользователя по external_id
+	// или (nil, nil), если не найден.
+	GetByExternalID(ctx context.Context, externalID string) (*User, error)
 }
 
 // SearchRepository — поиск по встречам.
